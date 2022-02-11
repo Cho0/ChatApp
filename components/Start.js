@@ -12,14 +12,16 @@ export default class Start extends React.Component {
         <Text>Hello Screen1!</Text>
         <TextInput
           style={{ hight: 40, borderColor: "gray", borderWidth: 1 }}
-          onChangeText={{ name } = this.setState({ name })}
-          value={this.state.name}
-          placeholder="Type Here ..."
+          onChangeText={{ name } => this.setState({name})}
+        value={this.state.name}
+        placeholder="Type Here ..."
         />
 
         <Button
           title="Go to Chat"
-          onPress={() => this.props.navigation.navigate("Chat", { name: this.state.name })} />
+          onPress={() =>
+            this.props.navigation.navigate("Chat", { name: this.state.name })}
+        />
       </View>
     )
   }
