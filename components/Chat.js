@@ -11,7 +11,10 @@ export default class Chat extends React.Component {
   }
 
   componentDidmount() {
+    let name = this.props.route.params.name;
+
     this.setState({
+      //--- system messages ---//
       messages: [
         {
           _id: 1,
@@ -23,14 +26,34 @@ export default class Chat extends React.Component {
             avatar: 'https://placeimg.com/140/140/any'
           },
         },
+        {
+          _id: 2,
+          text: name + ' has entered the chat',
+          createdAt: new Date(),
+          system: true,
+        }
       ],
     })
   }
 
+  //--- send messages ---//
   onSend(messages = []) {
     this.setState((previousState) => ({
       messages: GiftedChat.append(previousState.messages, messages),
     }));
+  }
+
+  //--- change text bubble color ---//
+  renderBubble(props) {
+    return (
+      <Bubble{...props}
+        wrapperStyle={{
+          right: {
+            backgroundColor: '#000'
+          }
+        }}
+      />
+    )
   }
 
   render() {
@@ -51,15 +74,31 @@ export default class Chat extends React.Component {
           backgroundColor: backDropColor
         }}
       >
-        <GiftedChat
-          messages={this.state.messages}
-          onSend={messages => this.onSend(messages)}
-          user={{
-            _id: 1,
-          }}
-        />
+        <View style={styles.giftedChat}>
+          <GiftedChat
+            renderBubble={this.renderBubble.bind(this)}
+            messages={this.state.messages}
+            onSend={messages => this.onSend(messages)}
+
+            user={{
+              _id: 1,
+            }}
+          />
+        </View>
         {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null}
       </View>
     )
   }
 }
+
+const styles = StyleSheet.create({
+  text: {
+    fontSize: 45,
+    color: '#fff'
+  },
+  giftedChat: {
+    flex: 1,
+    width: '88%',
+    paddingBottom: 30,
+  }
+})

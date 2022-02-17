@@ -11,14 +11,14 @@ export default class Start extends React.Component {
       backDropColor: this.colors.white,
     };
   }
-  //--- color changing ---//
+  //--- color palette ---//
   colors = {
     white: "#F6F6F6",
     dark: "#3D3D3D",
     blue: "#9ED8E3",
     purple: "#9C78B0"
   }
-
+  //--- color select function ---//
   colorSelect = (newColor) => {
     this.setState({ backDropColor: newColor })
   }
@@ -32,6 +32,7 @@ export default class Start extends React.Component {
 
           <View style={styles.box1}>
 
+            {/* --- name input box --- */}
             <TextInput
               style={{
                 height: 40,
@@ -62,6 +63,7 @@ export default class Start extends React.Component {
                 onPress={() => this.colorSelect(this.colors.purple)} />
             </View>
 
+            {/* --- Go to chat button --- */}
             <Button
               title="Go to Chat"
               onPress={() =>
@@ -81,7 +83,7 @@ export default class Start extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     alignItems: 'center'
   },
 
@@ -104,7 +106,7 @@ const styles = StyleSheet.create({
     borderColor: "gray",
     borderWidth: 1
   },
-
+  //--- dot size and color ---//
   dot: {
     width: 30,
     height: 30,
