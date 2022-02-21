@@ -10,30 +10,31 @@ export default class Chat extends React.Component {
     }
   }
 
-  componentDidmount() {
+  componentDidMount() {
+    // displays the user's name on the top of the screen
     let name = this.props.route.params.name;
+    this.props.navigation.setOptions({ title: name });
 
     this.setState({
-      //--- system messages ---//
       messages: [
         {
           _id: 1,
-          text: 'Hello developer',
+          text: "Hello developer!",
           createdAt: new Date(),
           user: {
             _id: 2,
-            name: 'React Native',
-            avatar: 'https://placeimg.com/140/140/any'
+            name: "React Native",
+            avatar: "https://placeimg.com/140/140/any",
           },
         },
         {
           _id: 2,
-          text: name + ' has entered the chat',
+          text: name + " has entered the chat",
           createdAt: new Date(),
           system: true,
-        }
+        },
       ],
-    })
+    });
   }
 
   //--- send messages ---//
@@ -57,9 +58,6 @@ export default class Chat extends React.Component {
   }
 
   render() {
-
-    let name = this.props.route.params.name;
-    this.props.navigation.setOptions({ title: name });
 
     //why does backDropColor need {}? it doesnt work without it. But im not sure what the {} do.
     const { backDropColor } = this.props.route.params;
