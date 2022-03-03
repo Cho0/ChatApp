@@ -1,6 +1,22 @@
 import React from "react";
 import { View, Text, Button, TextInput, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
 import { GiftedChat, Bubble } from 'react-native-gifted-chat'
+import firebase from 'firebase';
+import "firebase/firestore";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBYPPIRZAJ-qe5SJDIeEOMPHL-1br-0L-M",
+  authDomain: "chatapp-6e693.firebaseapp.com",
+  projectId: "chatapp-6e693",
+  storageBucket: "chatapp-6e693.appspot.com",
+  messagingSenderId: "897274409738",
+  appId: "1:897274409738:web:0ee79962de01d1bbc880f3",
+  measurementId: "G-BDJQPW73D4"
+}
+
+
+this.referenceChatMessages = firebase.firestore().collection('messages');
 
 export default class Chat extends React.Component {
   constructor() {
@@ -11,22 +27,25 @@ export default class Chat extends React.Component {
   }
 
   componentDidMount() {
+    this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
+      if (!user) {
+        firebase.auth().signInAnonymously();
+      }
+      this.setState({
+        uid: user.uid,
+        messages: [],
+      });
+      this.unsubscribe = this.referenceChatMessages
+        .orderBy("createdAt", "desc")
+        .onSnapshot(this.onCollectionUpdate);
+    });
+
     // displays the user's name on the top of the screen
     let name = this.props.route.params.name;
     this.props.navigation.setOptions({ title: name });
 
     this.setState({
       messages: [
-        {
-          _id: 1,
-          text: "Hello developer!",
-          createdAt: new Date(),
-          user: {
-            _id: 2,
-            name: "React Native",
-            avatar: "https://placeimg.com/140/140/any",
-          },
-        },
         {
           _id: 2,
           text: name + " has entered the chat",
@@ -35,7 +54,10 @@ export default class Chat extends React.Component {
         },
       ],
     });
+    this.referenceChatMessages = firebase.firestore().collection("messages");
   }
+
+
 
   //--- send messages ---//
   onSend(messages = []) {
@@ -55,6 +77,27 @@ export default class Chat extends React.Component {
         }}
       />
     )
+  }
+
+  onCollectionUpdate = (querySnapshot) => {
+    const messages = [];
+    // go through each document
+    querySnapshot.forEach((doc) => {
+      // get the QueryDocumentSnapshot's data
+      var data = doc.data();
+      messages.push({
+        user: data.user,
+        text: data.text,
+        createdAt: data.createdAt.toDate(),
+      });
+    });
+    this.setState({
+      messages: messages,
+    });
+  };
+
+  componentWillUnmount() {
+    this.unsubscribe();
   }
 
   render() {
