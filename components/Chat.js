@@ -1,10 +1,9 @@
 import React from "react";
 import { View, Text, Button, TextInput, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
 import { GiftedChat, Bubble } from 'react-native-gifted-chat'
-import firebase from 'firebase';
-import "firebase/firestore";
-
-
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
 const firebaseConfig = {
   apiKey: "AIzaSyBYPPIRZAJ-qe5SJDIeEOMPHL-1br-0L-M",
   authDomain: "chatapp-6e693.firebaseapp.com",
@@ -13,7 +12,10 @@ const firebaseConfig = {
   messagingSenderId: "897274409738",
   appId: "1:897274409738:web:0ee79962de01d1bbc880f3",
   measurementId: "G-BDJQPW73D4"
-}
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
 
 this.referenceChatMessages = firebase.firestore().collection('messages');
