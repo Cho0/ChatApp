@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, Button, TextInput, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
 import { GiftedChat, Bubble } from 'react-native-gifted-chat'
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
+const firebase = require('firebase');
+require('firebase/firestore');
+
 const firebaseConfig = {
   apiKey: "AIzaSyBYPPIRZAJ-qe5SJDIeEOMPHL-1br-0L-M",
   authDomain: "chatapp-6e693.firebaseapp.com",
@@ -15,7 +15,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = firebase.initializeApp(firebaseConfig);
 
 
 this.referenceChatMessages = firebase.firestore().collection('messages');
@@ -68,6 +68,15 @@ export default class Chat extends React.Component {
     }));
   }
 
+  //--- add messages ---//
+  addMessage() {
+    this.referenceChatMessages.add({
+      user: data.user,
+      text: data.text,
+      createdAt: data.createdAt.toDate(),
+    })
+  }
+
   //--- change text bubble color ---//
   renderBubble(props) {
     return (
@@ -88,6 +97,7 @@ export default class Chat extends React.Component {
       // get the QueryDocumentSnapshot's data
       var data = doc.data();
       messages.push({
+        uid: user.uid,
         user: data.user,
         text: data.text,
         createdAt: data.createdAt.toDate(),
@@ -122,6 +132,8 @@ export default class Chat extends React.Component {
             renderBubble={this.renderBubble.bind(this)}
             messages={this.state.messages}
             onSend={messages => this.onSend(messages)}
+            addMessage={message => this.addMessage(message)}
+
 
             user={{
               _id: 1,
