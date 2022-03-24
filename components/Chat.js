@@ -14,51 +14,62 @@ const firebaseConfig = {
   measurementId: "G-BDJQPW73D4"
 };
 
-// Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
-
-
-this.referenceChatMessages = firebase.firestore().collection('messages');
-
 export default class Chat extends React.Component {
   constructor() {
     super();
     this.state = {
       messages: [],
+      uid: 0,
+      user: {
+        _id: "",
+        name: "",
+        avatar: "",
+      },
+      isConnected: false,
+      image: null,
+      location: null,
+    };
+    //initializing firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
+    // reference to the Firestore messages collection
+    this.referenceChatMessages = firebase.firestore().collection("messages");
+    this.refMsgsUser = null;
   }
 
   componentDidMount() {
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
+    // displays the user's name on the top of the screen
+    let { name } = this.props.route.params;
+    this.props.navigation.setOptions({ title: name });
+
+    // listen to authentication events
+    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async user => {
       if (!user) {
-        firebase.auth().signInAnonymously();
+        await firebase.auth().signInAnonymously();
       }
+
+      // update user state with currently active data
       this.setState({
         uid: user.uid,
         messages: [],
-      });
-      this.unsubscribe = this.referenceChatMessages
-        .orderBy("createdAt", "desc")
-        .onSnapshot(this.onCollectionUpdate);
-    });
-
-    // displays the user's name on the top of the screen
-    let name = this.props.route.params.name;
-    this.props.navigation.setOptions({ title: name });
-
-    this.setState({
-      messages: [
-        {
-          _id: 2,
-          text: name + " has entered the chat",
-          createdAt: new Date(),
-          system: true,
+        user: {
+          _id: user.uid,
+          name: name,
+          avatar: 'https://placeimg.com/140/140/any',
         },
-      ],
+      });
+      // listens for updates in the collection
+      this.unsubscribe = this.referenceChatMessages
+        .orderBy('createdAt', 'desc')
+        .onSnapshot(this.onCollectionUpdate);
+      //referencing messages of current user
+      this.refMsgsUser = firebase
+        .firestore()
+        .collection('messages')
+        .where('uid', '==', this.state.uid);
     });
-    this.referenceChatMessages = firebase.firestore().collection("messages");
   }
-
 
 
   //--- send messages ---//
@@ -70,11 +81,13 @@ export default class Chat extends React.Component {
 
   //--- add messages ---//
   addMessage() {
+    const message = this.state.messages[0];
     this.referenceChatMessages.add({
-      user: data.user,
-      text: data.text,
-      createdAt: data.createdAt.toDate(),
-    })
+      _id: message._id,
+      text: message.text || "",
+      createdAt: message.createdAt,
+      user: this.state.user,
+    });
   }
 
   //--- change text bubble color ---//
