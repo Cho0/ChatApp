@@ -46,6 +46,7 @@ export default class Chat extends React.Component {
     // listen to authentication events
     this.authUnsubscribe = firebase.auth().onAuthStateChanged(async user => {
       if (!user) {
+        console.log(user);
         await firebase.auth().signInAnonymously();
       }
 
