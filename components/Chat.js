@@ -104,17 +104,21 @@ export default class Chat extends React.Component {
     )
   }
 
-  onCollectionUpdate = (querySnapshot) => {
+  onCollectionUpdate = (QuerySnapshot) => {
     const messages = [];
     // go through each document
-    querySnapshot.forEach((doc) => {
-      // get the QueryDocumentSnapshot's data
-      var data = doc.data();
+    QuerySnapshot.forEach((doc) => {
+      // get the queryDocumentSnapshot's data
+      let data = doc.data();
       messages.push({
-        uid: user.uid,
-        user: data.user,
+        _id: data._id,
         text: data.text,
         createdAt: data.createdAt.toDate(),
+        user: {
+          _id: data.user._id,
+          name: data.user.name,
+          avatar: data.user.avatar,
+        },
       });
     });
     this.setState({
@@ -147,10 +151,10 @@ export default class Chat extends React.Component {
             messages={this.state.messages}
             onSend={messages => this.onSend(messages)}
             addMessage={message => this.addMessage(message)}
-
-
             user={{
-              _id: 1,
+              _id: this.state.user._id,
+              name: this.state.name,
+              avatar: this.state.user.avatar,
             }}
           />
         </View>
