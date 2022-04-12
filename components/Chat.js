@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, Button, TextInput, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
-import { GiftedChat, Bubble } from 'react-native-gifted-chat'
+import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat';
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import NetInfo from '@react-native-community/netinfo';
 const firebase = require('firebase');
 require('firebase/firestore');
 
@@ -37,41 +39,92 @@ export default class Chat extends React.Component {
     this.referenceChatMessages = firebase.firestore().collection("messages");
     this.refMsgsUser = null;
   }
+  // --- gets messages from asyncStorage --- //
+  async getMessages() {
+    let messages = '';
+    try {
+      messages = (await AsyncStorage.getItem('messages')) || [];
+      this.setState({
+        messages: JSON.parse(messages)
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+  // --- saves user messages into strings into asyncStorage --- //
+  async saveMessages() {
+    try {
+      await AsyncStorage.setItem('messages', JSON.stringify(this.state.messages));
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+  // --- deletes messages, meant for testing --- //
+  async deleteMessages() {
+    try {
+      await AsyncStorage.removeItem('messages');
+      this.setState({
+        messages: []
+      })
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
 
   componentDidMount() {
     // displays the user's name on the top of the screen
     let { name } = this.props.route.params;
     this.props.navigation.setOptions({ title: name });
 
-    // listen to authentication events
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async user => {
-      if (!user) {
-        console.log(user);
-        await firebase.auth().signInAnonymously();
-      }
+    // checks is user is online or offline
+    NetInfo.fetch().then(connection => {
+      if (connection.isConnected) {
+        this.setState({ isConnected: true });
+        console.log('online');
 
-      // update user state with currently active data
-      this.setState({
-        uid: user.uid,
-        messages: [],
-        user: {
-          _id: user.uid,
-          name: name,
-          avatar: 'https://placeimg.com/140/140/any',
-        },
-      });
-      // listens for updates in the collection
-      this.unsubscribe = this.referenceChatMessages
-        .orderBy('createdAt', 'desc')
-        .onSnapshot(this.onCollectionUpdate);
-      //referencing messages of current user
-      this.refMsgsUser = firebase
-        .firestore()
-        .collection('messages')
-        .where('uid', '==', this.state.uid);
+        // listen to authentication events
+        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async user => {
+          if (!user) {
+            console.log(user);
+            await firebase.auth().signInAnonymously();
+          }
+
+          // update user state with currently active data
+          this.setState({
+            uid: user.uid,
+            messages: [],
+            user: {
+              _id: user.uid,
+              name: name,
+              avatar: 'https://placeimg.com/140/140/any',
+            },
+          });
+
+          // listens for updates in the collection
+          this.unsubscribe = this.referenceChatMessages
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(this.onCollectionUpdate);
+
+          //referencing messages of current user
+          this.refMsgsUser = firebase
+            .firestore()
+            .collection('messages')
+            .where('uid', '==', this.state.uid);
+        });
+
+        // saves messages online
+        this.saveMessages();
+      } else {
+        this.setState({
+          isConnected: false
+        });
+        // gets messages from asyncStorage
+        this.getMessages();
+        console.log('offline');
+
+      };
     });
   }
-
 
   //--- send messages ---//
   onSend(messages = []) {
@@ -81,6 +134,7 @@ export default class Chat extends React.Component {
       }),
       () => {
         this.addMessage();
+        this.saveMessages();
       }
     );
   }
@@ -109,6 +163,13 @@ export default class Chat extends React.Component {
     )
   }
 
+  renderInputToolbar(props) {
+    if (this.state.isConnected == false) {
+    } else {
+      return <InputToolbar {...props} />;
+    }
+  }
+
   onCollectionUpdate = (QuerySnapshot) => {
     const messages = [];
     // go through each document
@@ -129,14 +190,17 @@ export default class Chat extends React.Component {
     this.setState({
       messages: messages,
     });
+    this.saveMessages();
   };
 
   componentWillUnmount() {
-    this.unsubscribe();
+    if (this.state.isConnected) {
+      this.authUnsubscribe();
+      this.unsubscribe();
+    }
   }
 
   render() {
-
     //why does backDropColor need {}? it doesnt work without it. But im not sure what the {} do.
     const { backDropColor } = this.props.route.params;
 
