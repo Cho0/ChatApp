@@ -28,7 +28,7 @@ export default class Start extends React.Component {
       <View style={styles.container} >
         <ImageBackground source={BackgroundImage} resizeMode="cover" style={styles.image}>
 
-          <Text>Chat App</Text>
+          <Text style={styles.chatApp}>Chat App</Text>
 
           <View style={styles.box1}>
 
@@ -81,6 +81,14 @@ export default class Start extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  chatApp: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: 30
+
+
+  },
+
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -97,7 +105,7 @@ const styles = StyleSheet.create({
     height: "44%",
     width: "88%",
     backgroundColor: "white",
-    justifyContent: "center",
+    justifyContent: "space-evenly",
     alignItems: "center"
   },
 
